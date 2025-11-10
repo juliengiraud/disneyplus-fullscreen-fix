@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+  "name": "Disney+ Fullscreen Fix",
+  "version": "1.0.0",
+  "description": "Automatically restores fullscreen when Disney+ loads the next episode",
+  "icons": {
+    "48": "icon.png",
+    "96": "icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.disneyplus.com/*/play/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": [
+    "activeTab"
+  ]
+}
