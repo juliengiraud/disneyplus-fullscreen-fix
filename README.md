@@ -17,3 +17,9 @@ Load in Firefox
 - Click "This Firefox" in the left sidebar
 - Click "Load Temporary Add-on"
 - Select the `manifest.json` file from the extension directory
+
+## Export package
+
+```bash
+zip disney_plugin.zip content.js icon.png LICENSE manifest.json
+```
