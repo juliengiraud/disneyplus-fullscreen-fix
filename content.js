@@ -1,49 +1,28 @@
 (() => {
 
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     function isFullscreen() {
         return !!(document.fullscreenElement ||
             document.webkitFullscreenElement ||
             document.mozFullScreenElement);
     }
 
-    async function getFullscreenButton() {
-        max_retry = 1000
-        retry = 0
-        while (retry < max_retry) {
-            try {
-                const shadowRoot = document.querySelector('toggle-fullscreen').shadowRoot
-                const fullscreenButton = shadowRoot.querySelector('info-tooltip button')
-                if (fullscreenButton == null) {
-                    throw Error()
-                }
-                return fullscreenButton
-            } catch (e) {
-                console.log("[Disney+ Fullscreen Fix] Failed to retrieve fullscreen button")
-                await sleep(100)
-            }
-        }
-    }
-
-
+    let isWorkerOn = false
 
     setInterval(() => {
-        console.log("[Disney+ Fullscreen Fix] Startup worker ON")
+        if (isWorkerOn) {
+            console.log("[Disney+ Fullscreen Fix] Startup worker ON", isWorkerOn)
+        } else {
+            console.log("[Disney+ Fullscreen Fix] Startup worker OFF", isWorkerOn)
+            return
+        }
         if (isFullscreen()) {
             console.log("[Disney+ Fullscreen Fix] Already in fullscreen => END")
             return
         }
-        const shadowRoot = document.querySelector('toggle-fullscreen')
-        if (shadowRoot == null) {
-            console.log("[Disney+ Fullscreen Fix] documentShadowRoot is null => END")
-            return
-        }
-        const fullscreenButton = shadowRoot.shadowRoot.querySelector('info-tooltip button')
+        const shadowRoot = document.querySelector('toggle-fullscreen')?.shadowRoot
+        const fullscreenButton = shadowRoot?.querySelector('info-tooltip button')
         if (fullscreenButton == null) {
-            console.log("[Disney+ Fullscreen Fix] fullscreenButton is null => END")
+            console.log("[Disney+ Fullscreen Fix] Failed to restore fullscreen => END")
             return
         }
 
@@ -51,100 +30,18 @@
         console.log("[Disney+ Fullscreen Fix] Restored fullscreen => END", fullscreenButton)
     }, 1000)
 
-    async function enterFullscreen() {
-        const fullscreenButton = await getFullscreenButton()
-        fullscreenButton.click()
-        console.log('[Disney+ Fullscreen Fix] Restored fullscreen');
+    function handleFullscreenChange() {
+        if (isFullscreen()) {
+            console.log("[Disney+ Fullscreen Fix] Enter fullscreen")
+            isWorkerOn = false
+        } else {
+            console.log("[Disney+ Fullscreen Fix] Exit fullscreen")
+            isWorkerOn = true
+        }
     }
 
-    // const playerUI = document.querySelector('disney-web-player-ui')
-    // const shadowRoot = playerUI.shadowRoot;
-
-
-
-
-    // // Stop the retry interval
-    // function stopRetrying() {
-    //     if (restoreInterval) {
-    //         clearInterval(restoreInterval);
-    //         restoreInterval = null;
-    //         console.log('[Disney+ Fullscreen Fix] Stopped retry attempts');
-    //     }
-    // }
-
-    // // Start retry interval
-    // function startRetrying(reason) {
-    //     stopRetrying(); // Clear any existing interval
-
-    //     console.log(`[Disney+ Fullscreen Fix] Starting retry attempts (trigger: ${reason})`);
-
-    //     let attemptCount = 0;
-
-    //     restoreInterval = setInterval(() => {
-    //         if (!shouldRestoreFullscreen || !fullscreenExitTime) {
-    //             stopRetrying();
-    //             return;
-    //         }
-
-    //         const timeSinceExit = Date.now() - fullscreenExitTime;
-
-    //         if (timeSinceExit > RESTORE_WINDOW_MS) {
-    //             console.log('[Disney+ Fullscreen Fix] Restore window expired, assuming manual exit');
-    //             shouldRestoreFullscreen = false;
-    //             wasFullscreen = false;
-    //             fullscreenExitTime = null;
-    //             stopRetrying();
-    //             return;
-    //         }
-
-    //         // Check if we're ready to restore
-    //         const video = document.querySelector('video');
-    //         if (video && !isFullscreen() && shouldRestoreFullscreen) {
-    //             attemptCount++;
-    //             console.log(`[Disney+ Fullscreen Fix] Attempt #${attemptCount} (${timeSinceExit}ms since exit)`);
-
-    //             const clicked = clickFullscreenButton();
-
-    //             // Check if it worked after a short delay
-    //             setTimeout(() => {
-    //                 if (isFullscreen()) {
-    //                     console.log('[Disney+ Fullscreen Fix] ✓ Successfully restored fullscreen!');
-    //                     shouldRestoreFullscreen = false;
-    //                     stopRetrying();
-    //                 }
-    //             }, 200);
-    //         }
-    //     }, RETRY_INTERVAL_MS);
-    // }
-
-    // Track fullscreen changes
-    // function handleFullscreenChange(event) {
-    //     const currentlyFullscreen = isFullscreen();
-    //     console.log(`[Disney+ Fullscreen Fix] Is full screen : ${currentlyFullscreen}`)
-    //     console.log('event', event)
-
-        // if (currentlyFullscreen) {
-        //     wasFullscreen = true;
-        //     shouldRestoreFullscreen = false;
-        //     fullscreenExitTime = null;
-        //     stopRetrying();
-        //     console.log('[Disney+ Fullscreen Fix] ✓ Entered fullscreen');
-        // } else {
-        //     if (wasFullscreen) {
-        //         fullscreenExitTime = Date.now();
-        //         shouldRestoreFullscreen = true;
-        //         console.log('[Disney+ Fullscreen Fix] Exited fullscreen, will attempt to restore');
-
-        //         // Start trying to restore
-        //         startRetrying('fullscreen exit');
-        //     }
-        // }
-    // }
-
     // Listen for fullscreen changes
-    // document.addEventListener('fullscreenchange', handleFullscreenChange);
-    // document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    // document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
 
     // // Listen for clicks to trigger restore if needed
     // document.addEventListener('click', (e) => {
@@ -171,14 +68,21 @@
     //     }
     // }).observe(document, { subtree: true, childList: true });
 
-    function handleManualExitFullscreen(event) {
-        if (event.code === 'Escape') {
-            console.log('[Disney+ Fullscreen Fix] Escape key pressed')
-
-        }
+    // this function is working very badly as there is no event trigger the first time i press escape
+    // HEWEVER i exit the fullscreen so let's try to trigger this instead
+    // BUT be careful not to trigger it at episode end later
+    function manualExitFullscreenWorker(event) {
+        console.log('[Disney+ Fullscreen Fix] keyX', event)
+        // if (event.code === 'Escape') {
+        //     console.log('[Disney+ Fullscreen Fix] Escape key pressed')
+        //     isWorkerOn = false
+        //     return
+        // }
     }
 
-    document.addEventListener('keydown', e => console.log('[Disney+ Fullscreen Fix] keydown', e))
+    document.addEventListener('keydown', manualExitFullscreenWorker)
+    document.addEventListener('keypress', manualExitFullscreenWorker)
+    document.addEventListener('keyup', manualExitFullscreenWorker)
     // enterFullscreen()
 
     console.log('[Disney+ Fullscreen Fix] Extension loaded and monitoring')
