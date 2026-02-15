@@ -2,8 +2,8 @@
 
     let fullscreenRequired = false
     let fullscreenButton = null
-    let exitButtonClicked = false
-    let lastUrl = location.href;
+    let lastUrl = location.href
+    let lastClickOnButton = null
 
     function checkUrlChange() {
         const currentUrl = location.href
@@ -15,9 +15,6 @@
         lastUrl = currentUrl
         console.log('[Disney+ Fullscreen Fix] URL changed:', oldEpisodeId, '->', newEpisodeId)
         fullscreenButton = null
-        // if (shouldRestoreFullscreen && !restoreInterval) {
-        //     startRetrying('URL change');
-        // }
     }
 
     function isFullscreen() {
@@ -27,31 +24,28 @@
     }
 
     function handleFullscreenChange() {
+        const oneSecondAgo = new Date(new Date().getTime() - 1000)
+        const isUserInput = oneSecondAgo < lastClickOnButton
         if (isFullscreen()) {
-            console.log("[Disney+ Fullscreen Fix] Enter fullscreen")
-            // isWorkerOn = true
-        } else {
-            console.log("[Disney+ Fullscreen Fix] Exit fullscreen")
-            // isWorkerOn = false
-            if (exitButtonClicked) {
-                console.log("[Disney+ Fullscreen Fix] Nothing to do")
-                // exitButtonClicked = false
+            if (isUserInput) {
+                console.log("[Disney+ Fullscreen Fix] User asked to enter fullscreen")
+                fullscreenRequired = true
             } else {
-                console.log("[Disney+ Fullscreen Fix] Will have to put back fullscreen")
+                console.log("[Disney+ Fullscreen Fix] User Double click ???")
+                fullscreenRequired = true
+            }
+        } else {
+            if (isUserInput) {
+                console.log("[Disney+ Fullscreen Fix] User asked to exit fullscreen")
+                fullscreenRequired = false
+            } else {
+                console.log("[Disney+ Fullscreen Fix] Fullscreen lost")
             }
         }
     }
 
     function handleFullscreenButtonClick() {
-        const isGoingToBeFullscreen = isFullscreen()
-        if (isGoingToBeFullscreen) {
-            console.log("[Disney+ Fullscreen Fix] Click to exit fullscreen")
-            // fullscreenRequired = false
-            // exitButtonClicked = true
-        } else {
-            console.log("[Disney+ Fullscreen Fix] Click to enter fullscreen")
-            // fullscreenRequired = true
-        }
+        lastClickOnButton = new Date()
     }
 
     function init() {
@@ -69,28 +63,18 @@
     setInterval(() => {
         init()
         if (fullscreenRequired) {
-            console.log("[Disney+ Fullscreen Fix] Startup worker ON", fullscreenRequired)
         } else {
-            console.log("[Disney+ Fullscreen Fix] Startup worker OFF", fullscreenRequired)
             return
         }
         if (isFullscreen()) {
-            console.log("[Disney+ Fullscreen Fix] Already in fullscreen => END")
             return
         }
-        // const videoElement = document.querySelectorAll('disney-web-player video')[1]
         if (fullscreenButton == null) {
-            console.log("[Disney+ Fullscreen Fix] Failed to restore fullscreen => END")
             return
         }
-        // videoElement.requestFullscreen()
-        console.log("[Disney+ Fullscreen Fix] Restored fullscreen => END", fullscreenButton)
+        fullscreenButton.click()
     }, 1000)
 
-    // Listen for fullscreen changes
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-
-
-
     console.log('[Disney+ Fullscreen Fix] Extension loaded and monitoring')
 })();
