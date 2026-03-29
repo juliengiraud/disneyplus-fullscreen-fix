@@ -1,25 +1,32 @@
-# Firefox Disney+ Fullscreen Fix #1912701
+# Disney+ Fullscreen Fix
 
-Firefox extension to automatically restore fullscreen mode when Disney+ loads the next episode
+Extension to automatically restore fullscreen mode when Disney+ loads the next episode
 
-[Firefox Bug #1912701](https://bugzilla.mozilla.org/show_bug.cgi?id=1912701)
+Related [Firefox issue #1912701](https://bugzilla.mozilla.org/show_bug.cgi?id=1912701)
 
 ## Installation
 
-Download this repository
-```bash
-git clone https://github.com/yourusername/firefox-disneyplus-fullscreen.git
-```
+Download [last version](https://github.com/juliengiraud/disneyplus-fullscreen-fix/raw/refs/heads/main/disney_plugin.zip)
 
-Load in Firefox
+Go the the Extensions Settings
 
-- Open Firefox and navigate to `about:debugging`
-- Click "This Firefox" in the left sidebar
-- Click "Load Temporary Add-on"
-- Select the `manifest.json` file from the extension directory
+Firefox
 
-## Export package
+- "Options" > "Install Add-on From File..."
+- Select the zip file
 
-```bash
-zip disney_plugin.zip content.js icon.png LICENSE manifest.json
+Chrome
+
+- Unzip the file
+- "Load unpacked"
+- Select the unziped folder
+
+## How to build
+
+```sh
+# Install requirements
+sudo apt install librsvg2-bin
+
+# Build
+make build
 ```
