@@ -1,5 +1,7 @@
 # Disney+ Fullscreen Fix
 
+![](icon.svg)
+
 Extension to automatically restore fullscreen mode when Disney+ loads the next episode
 
 Related [Firefox issue #1912701](https://bugzilla.mozilla.org/show_bug.cgi?id=1912701)

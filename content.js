@@ -3,6 +3,33 @@
         return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement)
     }
 
+    function findVideoElement(root = document) {
+        const videos = []
+
+        function walk(node) {
+            if (node.tagName === 'VIDEO' && node.readyState > 2) {
+                videos.push(node)
+            }
+
+            const children = node.children || []
+            for (const child of children) {
+                walk(child)
+            }
+
+            if (node.shadowRoot) {
+                walk(node.shadowRoot)
+            }
+        }
+
+        const startNodes = root.children || root.childNodes
+        for (const node of startNodes) {
+            walk(node)
+        }
+
+        return videos[0]
+    }
+
+
     let fullscreenRequired = false
     let lastUrl = location.href
 
@@ -24,12 +51,11 @@
     });
 
     setInterval(() => {
-        const shadowRoot = document.querySelector('toggle-fullscreen')?.shadowRoot
-        const fullscreenButton = shadowRoot?.querySelector('info-tooltip button')
-        if (isFullscreen() || !fullscreenRequired || fullscreenButton == null) {
+        const video = findVideoElement()
+        if (isFullscreen() || !fullscreenRequired || video == null) {
             return
         }
-        fullscreenButton.click()
+        video.requestFullscreen()
     }, 1000)
 
 })()
